@@ -1,0 +1,32 @@
+name: Toronto-Bikeshare-Webapp
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.8
+  - numpy
+  - pandas
+  - matplotlib
+  - seaborn
+  - scikit-learn
+  - scipy
+  - pyproj
+  - geopandas
+  - fiona
+  - shapely
+  - folium
+  - requests
+  - certifi
+  - tqdm
+  - jupyter
+  - ipykernel
+  - pip
+
+  - pip:
+      - streamlit==1.34.0
+      - streamlit-folium==0.22.1
+      - branca==0.7.2
+      - xyzservices==2024.4.0
+      - watchdog==4.0.0<
