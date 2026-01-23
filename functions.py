@@ -1,3 +1,4 @@
+from geopy.geocoders import Nominatim
 import streamlit as st
 import datetime as dt  # Import datetime for working with dates and times
 import pandas as pd  # Import pandas for data manipulation
@@ -38,3 +39,19 @@ def merge_df(df1, df2):
     df = df1.merge(df2, how='left', on='station_id')  # Merge the DataFrames on station_id
 
     return df
+
+def get_marker_color(available):
+    if available > 3:
+        return 'green'
+    elif 0 < available <= 3:
+        return 'orange'
+    else:
+        return 'red'
+
+def geocode(address):
+    geolocator = Nominatim(user_agent='Toronto-BikeShare-Webapp')
+    location = geolocator.geocode(address)
+    if location == '':
+        return ''
+    else:
+        return((location.latitude, location.longitude))

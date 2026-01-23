@@ -1,7 +1,10 @@
+import folium
 from functions import *
 import streamlit as st
+from streamlit_folium import st_folium
 
-st.set_page_config(page_title='Toronto Bike Share WebApp', page_icon=':bike:')
+
+st.set_page_config(page_title='Toronto Bike Share WebApp', page_icon=':bike:', layout='centered')
 
 station_url = 'https://tor.publicbikesystem.net/ube/gbfs/v1/en/station_status'
 latlon_url = 'https://tor.publicbikesystem.net/ube/gbfs/v1/en/station_information'
@@ -18,7 +21,7 @@ st.markdown('## Toronto Bike Share WebApp')
 st.markdown('#### You can track in real time the availability of each Bike Share station in Toronto')
 st.markdown('> Toronto\'s bikeshare guidelines say that an electric bike can be dropped at a non-charging station, so when returning an electric bike, the station doesn\'t need to be a charging station')
 
-## General Data
+## General Data Display
 col1, col2, col3 = st.columns(3)
 
 with col1:
@@ -33,9 +36,9 @@ with col3:
     st.metric(label='Total number of stations', value=len(df['num_docks_available']))
     st.metric(label='Full stations', value=sum(df['num_docks_available'] < 1))
 
+## Sidebar Setup
 with st.sidebar:
     option_selection = st.segmented_control(label='Are you looking to rent or return a bike ?', options=['Rent', 'Return'], selection_mode='single', default='Rent', label_visibility='visible', width='stretch')
-
     if option_selection == 'Rent':
         rent_bike_type = st.segmented_control(label='What kind of bikes are you looking to rent ?', options=['Mechanical', 'E-Bike', 'Both'], selection_mode='single', label_visibility='visible', width='stretch')
         rent_address = st.text_input(label='Where are you located ?', value='', type='default', label_visibility='visible')
@@ -44,16 +47,63 @@ with st.sidebar:
             if rent_address == '':
                 st.badge('Input address not valid', icon='❌', color='red')
             else:
-                pass
+                rent_geocode = geocode(rent_address + ' Toronto Canada')
+                if rent_geocode == '':
+                    st.badge('Input address not valid', icon='❌', color='red')
+                else:
+                    st.badge('Input address valid', icon='✔️', color='green')
 
     elif option_selection == 'Return':
         return_address = st.text_input(label='Where are you located ?', value='', type='default', label_visibility='visible')
         return_button = st.button(label='Find me a dock', type='primary')
         if return_button:
             if return_address == '':
-                st.badge('Input address not valid', icon=':heavy_exclamation_mark:', color='red')
+                st.badge('Input address not valid', icon='❌', color='red')
             else:
-                pass
+                return_geocode = geocode(return_address + ' Toronto Canada')
+                if return_geocode == '':
+                    st.badge('Input address not valid', icon='❌', color='red')
+                else:
+                    st.badge('Input address valid', icon='✔️', color='green')
 
-st.dataframe(df)
+## Map Display Before Address
+if option_selection == 'Rent' and not rent_button:
+    center = (43.65306613746548, -79.38815311015)  # Toronto's center coordinates
+    m = folium.Map(location=center, zoom_start=12.5, tiles='Cartodb Positron', height=500)  # Create a map with a grey background
 
+    for _, row in df.iterrows():
+        marker_color = get_marker_color(row['num_bikes_available'])
+        folium.Circle(location=[row['lat'], row['lon']], radius=2, color=marker_color, popup=folium.Popup(f"Station ID : {row['station_id']}<br>"
+                                                                                            f"Total Bikes Available: {row['num_bikes_available']}<br>"
+                                                                                            f"Mechanical Bike Available: {row['mechanical']}<br>"
+                                                                                            f"eBike Available: {row['ebike']}", max_width=300)).add_to(m)
+    st_folium(m, use_container_width=True, height=500)
+
+if option_selection == 'Return' and not return_button:
+    center = (43.65306613746548, -79.38815311015)  # Toronto's center coordinates
+    m = folium.Map(location=center, zoom_start=12.5, tiles='Cartodb Positron', height=500)  # Create a map with a grey background
+
+    for _, row in df.iterrows():
+        marker_color = get_marker_color(row['num_docks_available'])
+        folium.Circle(location=[row['lat'], row['lon']], radius=2, color=marker_color, popup=folium.Popup(f"Station ID : {row['station_id']}<br>"
+                                                                                            f"Total Bikes Available: {row['num_bikes_available']}<br>"
+                                                                                            f"Mechanical Bike Available: {row['mechanical']}<br>"
+                                                                                            f"eBike Available: {row['ebike']}", max_width=300)).add_to(m)
+    st_folium(m, use_container_width=True, height=500)
+
+## Map Display After Address
+if rent_button:
+    if rent_address != '':
+        if rent_geocode != '':
+            # fonction qui cherche le plus proche
+            rent_center = rent_geocode
+            rent_m = folium.Map(location=rent_center, zoom_start=12.5, tiles='Cartodb Positron', height=500)
+
+            for _, row in df.iterrows():
+                marker_color = get_marker_color(row['num_bikes_available'])
+                folium.Circle(location=[row['lat'], row['lon']], radius=2, color=marker_color, popup=folium.Popup(f"Station ID : {row['station_id']}<br>"
+                                                                                                    f"Total Bikes Available: {row['num_bikes_available']}<br>"
+                                                                                                    f"Mechanical Bike Available: {row['mechanical']}<br>"
+                                                                                                    f"eBike Available: {row['ebike']}", max_width=300)).add_to(rent_m)
+            folium.Marker(location=rent_geocode, popup='You are here', icon=folium.Icon(color='blue', icon='person', prefix='fa'))
+            st_folium(rent_m, use_container_width=True, height=500)
