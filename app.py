@@ -95,6 +95,7 @@ with st.sidebar:
 if option_selection == 'Rent' and st.session_state.rent_geocode:
     chosen_station = get_bike_availability(st.session_state.rent_geocode, df, rent_bike_type)
     coordinates, distance, duration = osrm(chosen_station, st.session_state.rent_geocode)
+    duration = distance * 3600/4000
     
     m = folium.Map(location=st.session_state.rent_geocode, zoom_start=15, tiles='Cartodb Positron')
     folium.Marker(location=st.session_state.rent_geocode, popup='You are here', icon=folium.Icon(color='blue', icon='person', prefix='fa')).add_to(m)
