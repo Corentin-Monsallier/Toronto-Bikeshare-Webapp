@@ -1,3 +1,4 @@
+import math
 import folium
 from functions import *
 import streamlit as st
@@ -39,31 +40,30 @@ with col2:
     st.metric(label='Average bike utilization', value=f"{((df['num_bikes_available'] / df['capacity']).mean()) * 100:.1f}%")
 with col3:
     st.metric(label='Total number of stations', value=len(df['num_docks_available']))
-    st.metric(label='Full stations', value=sum(df['num_docks_available'] < 1))
 
 ## Sidebar Setup
 with st.sidebar:
     option_selection = st.segmented_control(label='Are you looking to rent or return a bike ?', options=['Rent', 'Return'], selection_mode='single', label_visibility='visible', width='stretch')
     if option_selection == 'Rent':
+        reset_return()
         rent_bike_type = st.segmented_control(label='What kind of bikes are you looking to rent ?', options=['Mechanical', 'E-Bike', 'Both'], selection_mode='single', label_visibility='visible', width='stretch')
-        rent_address = st.text_input(label='Where are you located ?', value='', type='default', label_visibility='visible')
+        rent_address = st.text_input(label='Where are you located ?', value='', type='default', label_visibility='visible', key='rent_address_input')
         rent_button = st.button(label='Find me a bike', type='primary')
-        rent_reset_button = st.button(label='Reset address search', type='primary')
-
-        if rent_reset_button:
-            st.session_state.rent_geocode = None
+        rent_reset_button = st.button(label='Reset address search', type='primary', on_click=reset_rent)
 
         if rent_button:
             if rent_bike_type == '' or rent_bike_type == None:
-                st.session_state.rent_geocode = None
+                reset_rent_geocode()
+                reset_rent_search()
                 st.error('Please choose a bike type')
             if rent_address == '':
-                st.session_state.rent_geocode = None
+                reset_rent_geocode()
+                reset_rent_search()
                 st.error('Please enter an address')
             else:
                 res = geocode(rent_address + ' Toronto Canada')
                 if res == '':
-                    st.session_state.rent_geocode = None
+                    reset_rent_geocode()
                     st.error('Address not found')
                 else:
                     st.session_state.rent_geocode = res
@@ -71,21 +71,20 @@ with st.sidebar:
                     st.session_state.option = 'Rent'
 
     elif option_selection == 'Return':
-        return_address = st.text_input(label='Where are you located ?', value='', type='default', label_visibility='visible')
+        reset_rent()
+        return_address = st.text_input(label='Where are you located ?', value='', type='default', label_visibility='visible', key='return_address_input')
         return_button = st.button(label='Find me a dock', type='primary')
-        return_reset_button = st.button(label='Reset address search', type='primary')
-
-        if return_reset_button:
-            st.session_state.return_geocode = None
+        return_reset_button = st.button(label='Reset address search', type='primary', on_click=reset_return)
 
         if return_button:
             if return_address == '':
-                st.session_state.return_geocode = None
+                reset_return_geocode()
+                reset_return_search()
                 st.error('Please enter an address')
             else:
                 res = geocode(return_address + ' Toronto Canada')
                 if res == '':
-                    st.session_state.return_geocode = None
+                    reset_return_geocode()
                     st.error('Address not found')
                 else:
                     st.session_state.return_geocode = res
@@ -95,26 +94,43 @@ with st.sidebar:
 ## Map Display 
 if option_selection == 'Rent' and st.session_state.rent_geocode:
     chosen_station = get_bike_availability(st.session_state.rent_geocode, df, rent_bike_type)
+    coordinates, distance, duration = osrm(chosen_station, st.session_state.rent_geocode)
     
     m = folium.Map(location=st.session_state.rent_geocode, zoom_start=15, tiles='Cartodb Positron')
     folium.Marker(location=st.session_state.rent_geocode, popup='You are here', icon=folium.Icon(color='blue', icon='person', prefix='fa')).add_to(m)
-    folium.Marker(location=[chosen_station[1], chosen_station[2]], popup='Closest Bike', icon=folium.Icon(color='green', icon='bicycle', prefix='fa')).add_to(m)
-    
+    folium.Marker(location=[chosen_station[1], chosen_station[2]], popup='Closest Bike', icon=folium.Icon(color='red', icon='bicycle', prefix='fa')).add_to(m)
+    folium.PolyLine(locations=coordinates, color='blue', weight=5).add_to(m)
+
     st_folium(m, use_container_width=True, height=500, key="rent_map")
 
+    with col3:
+        st.metric(label=':green[Travel time (min)]', value=duration)
+        if distance >= 1000:
+            distance = round(distance / 1000, 1)
+            st.metric(label=':green[Travel distance (km)]', value=distance)
+        else:
+            distance = math.ceil(distance/10) * 10
+            st.metric(label=':green[Travel distance (m)]', value=distance)
+
 elif option_selection == 'Return' and st.session_state.return_geocode:
-    df_rent = df
-    df_rent['distance'] = ''
-    for i in range(len(df_rent)):
-        dist = geodesic(st.session_state.return_geocode, (df_rent['lat'][i], df_rent['lon'][i])).km
-        df_rent.loc[i, ['distance']] = dist
-    chosen_station = choose_station(df_rent)
+    chosen_station = get_dock_availability(st.session_state.return_geocode, df)
+    coordinates, distance, duration = osrm(chosen_station, st.session_state.return_geocode)
     
     m = folium.Map(location=st.session_state.return_geocode, zoom_start=15, tiles='Cartodb Positron')
     folium.Marker(location=st.session_state.return_geocode, popup='You are here', icon=folium.Icon(color='blue', icon='person', prefix='fa')).add_to(m)
-    folium.Marker(location=[chosen_station[1], chosen_station[2]], popup='Closest Station', icon=folium.Icon(color='green', icon='bicycle', prefix='fa')).add_to(m)
+    folium.Marker(location=[chosen_station[1], chosen_station[2]], popup='Closest Station', icon=folium.Icon(color='red', icon='bicycle', prefix='fa')).add_to(m)
+    folium.PolyLine(locations=coordinates, color='blue', weight=5).add_to(m)
     
     st_folium(m, use_container_width=True, height=500, key="return_map")
+    
+    with col3:
+        st.metric(label=':green[Travel time (min)]', value=duration)
+        if distance >= 1000:
+            distance = round(distance / 1000, 1)
+            st.metric(label=':green[Travel distance (km)]', value=distance)
+        else:
+            distance = math.ceil(distance/10) * 10
+            st.metric(label=':green[Travel distance (m)]', value=distance)
 
 else:
     center = (43.65306613746548, -79.38815311015)  # Toronto's center coordinates

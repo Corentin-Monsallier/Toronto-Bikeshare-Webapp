@@ -88,26 +88,54 @@ def get_bike_availability(latlon, df, input_bike_modes):
 
     return chosen_station
 
+def reset_rent():
+    reset_rent_address()
+    reset_rent_geocode()
+    reset_rent_search()
 
+def reset_rent_address():
+    st.session_state.rent_address_input = ''
+def reset_rent_geocode():
+    st.session_state.rent_geocode = None
+def reset_rent_search():
+    st.session_state.search_active = False
 
+def reset_return():
+    reset_return_address()
+    reset_return_geocode()
+    reset_return_geocode()
 
+def reset_return_address():
+    st.session_state.return_address_input = ''
+def reset_return_geocode():
+    st.session_state.return_geocode = None
+def reset_return_search():
+    st.session_state.search_active = False
 
-def run_osrm(chosen_station, iamhere):
-    start = "{},{}".format(iamhere[1], iamhere[0])  # Format the start coordinates
-    end = "{},{}".format(chosen_station[2], chosen_station[1])  # Format the end coordinates
-    url = 'http://router.project-osrm.org/route/v1/driving/{};{}?geometries=geojson'.format(start, end)  # Create the OSRM API URL
+def osrm(chosen_station, user_position):
+    coord_start = f'{user_position[1]},{user_position[0]}'
+    coord_end = f'{chosen_station[2]},{chosen_station[1]}'
+    profile = 'walking'
+    url = f'http://router.project-osrm.org/route/v1/{profile}/{coord_start};{coord_end}?geometries=geojson'
 
-    headers = {'Content-type': 'application/json'}
-    r = requests.get(url, headers=headers)  # Make the API request
-    print("Calling API ...:", r.status_code)  # Print the status code
+    r = requests.get(url)
+    json_route = r.json()
+    coord_path = json_route['routes'][0]['geometry']['coordinates']
+    duration_round = round(json_route['routes'][0]['duration'] / 60, 1)
+    duration = duration_round if duration_round > 1 else 1
+    distance = json_route['routes'][0]['distance']
 
-    routejson = r.json()  # Parse the JSON response
     coordinates = []
-    i = 0
-    lst = routejson['routes'][0]['geometry']['coordinates']
-    while i < len(lst):
-        coordinates.append([lst[i][1], lst[i][0]])  # Extract coordinates
-        i = i + 1
-    duration = round(routejson['routes'][0]['duration'] / 60, 1)  # Convert duration to minutes
+    for i in range(len(coord_path)):
+        coordinates.append([coord_path[i][1], coord_path[i][0]])
+    
+    return coordinates, distance, duration
 
-    return coordinates, duration  # Return the coordinates and duration
+def get_dock_availability(latlon, df):
+    df_return = df
+    df_return['distance'] = ''
+    for i in range(len(df_return)):
+        dist = geodesic(st.session_state.return_geocode, (df_return['lat'][i], df_return['lon'][i])).km
+        df_return.loc[i, ['distance']] = dist
+    chosen_station = choose_station(df_return)
+    return chosen_station
