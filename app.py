@@ -115,6 +115,7 @@ if option_selection == 'Rent' and st.session_state.rent_geocode:
 elif option_selection == 'Return' and st.session_state.return_geocode:
     chosen_station = get_dock_availability(st.session_state.return_geocode, df)
     coordinates, distance, duration = osrm(chosen_station, st.session_state.return_geocode)
+    duration = distance * 3600/4000
     
     m = folium.Map(location=st.session_state.return_geocode, zoom_start=15, tiles='Cartodb Positron')
     folium.Marker(location=st.session_state.return_geocode, popup='You are here', icon=folium.Icon(color='blue', icon='person', prefix='fa')).add_to(m)
@@ -124,13 +125,14 @@ elif option_selection == 'Return' and st.session_state.return_geocode:
     st_folium(m, use_container_width=True, height=500, key="return_map")
     
     with col3:
-        st.metric(label=':green[Travel time (min)]', value=duration)
         if distance >= 1000:
             distance = round(distance / 1000, 1)
             st.metric(label=':green[Travel distance (km)]', value=distance)
         else:
             distance = math.ceil(distance/10) * 10
             st.metric(label=':green[Travel distance (m)]', value=distance)
+
+        st.metric(label=':green[Travel time (min)]', value=duration)
 
 else:
     center = (43.65306613746548, -79.38815311015)  # Toronto's center coordinates
