@@ -121,8 +121,7 @@ def osrm(chosen_station, user_position):
     r = requests.get(url)
     json_route = r.json()
     coord_path = json_route['routes'][0]['geometry']['coordinates']
-    duration_round = round(json_route['routes'][0]['duration'] / 60, 1)
-    duration = duration_round if duration_round > 1 else 1
+    duration = round(json_route['routes'][0]['duration'] / 60, 1)
     distance = json_route['routes'][0]['distance']
 
     coordinates = []
