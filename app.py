@@ -23,7 +23,6 @@ latlon_df = get_station_latlon(latlon_url)
 df = merge_df(data_df, latlon_df)
 
 st.title('Toronto Bike Share : Live Dashboard')
-st.markdown('---')
 st.markdown("Monitor real-time bike availability and station capacity across Toronto.")
 st.info("💡 **Note:** Electric bikes can be dropped off at any station; a charging dock is not required for returns.")
 
