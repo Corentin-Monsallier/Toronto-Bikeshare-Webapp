@@ -106,7 +106,7 @@ if option_selection == 'Rent' and st.session_state.rent_geocode:
     st_folium(m, use_container_width=True, height=500, key="rent_map")
 
     with col3:
-        st.metric(label=':green[Travel time (min)]', value=duration)
+        st.metric(label=':green[Travel time (min)]', value=int(duration))
         if distance >= 1000:
             distance = round(distance / 1000, 1)
             st.metric(label=':green[Travel distance (km)]', value=distance)
@@ -129,14 +129,13 @@ elif option_selection == 'Return' and st.session_state.return_geocode:
     st_folium(m, use_container_width=True, height=500, key="return_map")
     
     with col3:
+        st.metric(label=':green[Travel time (min)]', value=int(duration))
         if distance >= 1000:
             distance = round(distance / 1000, 1)
             st.metric(label=':green[Travel distance (km)]', value=distance)
         else:
             distance = math.ceil(distance/10) * 10
             st.metric(label=':green[Travel distance (m)]', value=distance)
-
-        st.metric(label=':green[Travel time (min)]', value=duration)
 
 else:
     center = (43.65306613746548, -79.38815311015)  # Toronto's center coordinates
