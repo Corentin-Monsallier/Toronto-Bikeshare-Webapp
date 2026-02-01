@@ -24,7 +24,7 @@ df = merge_df(data_df, latlon_df)
 
 st.title('Toronto Bike Share : Live Dashboard')
 st.markdown("Monitor real-time bike availability and station capacity across Toronto.")
-st.info("💡 **Note:** Electric bikes can be dropped off at any station; a charging dock is not required for returns.")
+st.info("**Note:** Electric bikes can be dropped off at any station, a charging dock is not required for returns.")
 
 ## General Data Display
 col1, col2, col3 = st.columns(3)
