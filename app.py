@@ -6,29 +6,6 @@ from streamlit_folium import st_folium
 
 
 st.set_page_config(page_title='Toronto Bike Share', page_icon=':bike:', layout='centered')
-st.markdown("""
-    <style>
-    /* Force background colors */
-    .stApp {
-        background-color: white !important;
-    }
-    header, .stSidebar, .stHeader {
-        background-color: white !important;
-    }
-    /* Force text colors to be dark */
-    h1, h2, h3, p, span, div, label {
-        color: #31333F !important;
-    }
-    /* Fix metric labels */
-    [data-testid="stMetricLabel"] {
-        color: #555e6d !important;
-    }
-    /* Fix metric values */
-    [data-testid="stMetricValue"] {
-        color: #262730 !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
 
 station_url = 'https://tor.publicbikesystem.net/ube/gbfs/v1/en/station_status'
 latlon_url = 'https://tor.publicbikesystem.net/ube/gbfs/v1/en/station_information'
