@@ -5,7 +5,7 @@ import streamlit as st
 from streamlit_folium import st_folium
 
 
-st.set_page_config(page_title='Toronto Bike Share WebApp', page_icon=':bike:', layout='centered')
+st.set_page_config(page_title='Toronto Bike Share', page_icon=':bike:', layout='centered')
 
 station_url = 'https://tor.publicbikesystem.net/ube/gbfs/v1/en/station_status'
 latlon_url = 'https://tor.publicbikesystem.net/ube/gbfs/v1/en/station_information'
@@ -22,11 +22,10 @@ data_df = get_station_status(station_url)
 latlon_df = get_station_latlon(latlon_url)
 df = merge_df(data_df, latlon_df)
 
-#df = df.drop(columns= ['status', 'traffic', 'is_installed', 'is_renting', 'is_returning', 'last_reported', 'num_bikes_available_types', 'name', 'physical_configuration', 'groups', 'obcn', 'short_name', 'nearby_distance', 'address', 'is_charging_station', 'rental_methods', '_ride_code_support', 'rental_uris', 'post_code', 'altitude', 'is_valet_station', 'cross_street'])
-
-st.markdown('## Toronto Bike Share WebApp')
-st.markdown('#### You can track in real time the availability of each Bike Share station in Toronto')
-st.markdown('> Toronto\'s bikeshare guidelines say that an electric bike can be dropped at a non-charging station, so when returning an electric bike, the station doesn\'t need to be a charging station')
+st.title('Toronto Bike Share : Live Dashboard')
+st.markdown('---')
+st.markdown("Monitor real-time bike availability and station capacity across Toronto.")
+st.info("💡 **Note:** Electric bikes can be dropped off at any station; a charging dock is not required for returns.")
 
 ## General Data Display
 col1, col2, col3 = st.columns(3)
