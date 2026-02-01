@@ -9,6 +9,12 @@ This application transforms live API data into actionable insights for city comm
 * **Station Analytics**: Overview of total active stations and available docks across the city.
 * **Network Utilization**: Live calculation of system load to visualize current demand.
 
+## 📊 Data Source
+This project uses the **Toronto Open Data Portal** to ensure all bike and station counts are accurate and updated in real-time.
+
+## 🌐 Live Application
+Check out the live app here: **[toronto-bikeshare-webapp-corentin.streamlit.app](https://toronto-bikeshare-webapp-corentin.streamlit.app/)**
+
 ## 🔧 Installation & Setup
 To run this project locally, follow these steps:
 1. **Clone the repository**:
@@ -21,6 +27,3 @@ To run this project locally, follow these steps:
 3. **Run the app**:
    ```bash
    streamlit run app.py
-
-## 📊 Data Source
-This project uses the **Toronto Open Data Portal** to ensure all bike and station counts are accurate and updated in real-time.
