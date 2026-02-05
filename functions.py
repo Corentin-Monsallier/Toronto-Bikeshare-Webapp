@@ -1,3 +1,4 @@
+from geopy.exc import GeocoderUnavailable, GeocoderTimedOut
 from geopy.geocoders import Nominatim
 import streamlit as st
 import datetime as dt  # Import datetime for working with dates and times
@@ -10,8 +11,8 @@ import time
 from geopy.distance import geodesic  # Import geodesic for calculating distances
 from geopy.geocoders import Nominatim  # Import Nominatim for geocoding
 
+@st.cache_resource
 @st.cache_data 
-
 def get_station_status(url):
     with urllib.request.urlopen(url) as data_url:  # Open the URL
         data = json.loads(data_url.read().decode())  # Read and decoded the JSON data
@@ -52,13 +53,21 @@ def get_marker_color(available):
     else:
         return 'red'
 
+def get_geolocator():
+    return Nominatim(
+        user_agent="Toronto-BikeShare-Webapp",
+        timeout=10
+    )
 def geocode(address):
-    geolocator = Nominatim(user_agent='Toronto-BikeShare-Webapp')
-    location = geolocator.geocode(address)
-    if location == '' or location == None:
-        return ''
-    else:
-        return((location.latitude, location.longitude))
+    geolocator = get_geolocator()
+    try:
+        location = geolocator.geocode(address)
+        if location is None:
+            return None
+        return (location.latitude, location.longitude)
+    except (GeocoderUnavailable, GeocoderTimedOut):
+        return None
+
 
 def choose_station(df):
     chosen_station = []
