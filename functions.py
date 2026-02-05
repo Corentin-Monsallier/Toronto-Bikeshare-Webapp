@@ -20,7 +20,7 @@ def get_station_status(url):
     df = pd.DataFrame(data['data']['stations'])  # Convert the json data into a dataframe
     df = df[df['is_renting'] == 1]  # Filter out the stations that are not renting
     df = df[df['is_returning'] == 1]  # Filter out the stations that are not returning
-    df.drop_duplicates(['station_id', 'last_reported'])  # Remove duplicated records
+    df = df.drop_duplicates(['station_id', 'last_reported'])  # Remove duplicated records
 
     df['last_reported'] = pd.to_datetime(df['last_reported'], unit='s', utc=True)  # Convert the timestamps in date and time
     df['current_time'] = data['last_updated']  # Store the API's last updated timestamp
