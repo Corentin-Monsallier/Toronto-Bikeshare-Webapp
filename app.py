@@ -60,6 +60,9 @@ with st.sidebar:
                 st.error('Please enter an address')
             else:
                 res = geocode(rent_address + ' Toronto Canada')
+                if res is None:
+                    st.error("Geocoding service temporarily unavailable. Please try again later.")
+                    reset_rent_geocode()
                 if res == '':
                     reset_rent_geocode()
                     st.error('Address not found')
@@ -81,6 +84,9 @@ with st.sidebar:
                 st.error('Please enter an address')
             else:
                 res = geocode(return_address + ' Toronto Canada')
+                if res is None:
+                    st.error("Geocoding service temporarily unavailable. Please try again later.")
+                    reset_rent_geocode()
                 if res == '':
                     reset_return_geocode()
                     st.error('Address not found')
