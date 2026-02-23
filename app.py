@@ -146,7 +146,7 @@ else:
     m = folium.Map(location=center, zoom_start=12.5, tiles='Cartodb Positron')  # Create a map with a grey background
 
     for _, row in df.iterrows():
-        count = row['num_bikes_available'] if option_selection == 'Rent' else row['num_docks_available']
+        count = row['num_docks_available'] if option_selection == 'Return' else row['num_bikes_available']
         marker_color = get_marker_color(count)
 
         folium.Circle(
